@@ -1,49 +1,66 @@
+/*
+*	WordCount
+*
+*	author: Dario Balinzo
+*/
+
 //#define DEBUG 1
 #define TIMING 1
+
+
 #include<time.h>
 #include<sys/time.h>
-#include "skeleton.hpp"
+
+
+#include "mapreduce.hpp"
+
+
 #include "word.hpp"
 #include "string.hpp"
 #include <fstream> //reading file
 #include <ctype.h> //lower case string conversion
 
 
+/*Number of worker in map phase and in the reduce phase*/
 long R;
 long M;
 
 
 
 
-class MyMap : public Map<line,word,long> {
 
+/*
+*	Defining Map class
+*	
+*	The metod map takes in input a line, custom type string (a buffer of 160 char)
+*	and emit a couple <word,long>, where word is a buffer of 15 char
+*/
+class MyMap : public Map<line,word,long> {
 		long one=1;
 		word w;
 		
 		void map( line l) {
 			int i=0;
 			int j;
-			/*//lower case the input
-			for(i = 0; i<LINE; i++){
-				if (l.buffer[i]== '\0')
-					break;
-  				l.buffer[i] = tolower(l.buffer[i]);
-  			}*/
-  			
+			char nextChar;
+
+  			/*reading a line of text, emit every word founded*/
   			for(i = 0; i<LINE; i++){
   				if(l.buffer[i]=='\0') {
   					break;
   				}
   				w.buffer[0]='\0'; //delete previus string
   				j=0;
+  				//while there is a word to read
   				while (i<LINE && j<WORD) {
-  					l.buffer[i] = tolower(l.buffer[i]);
-  					if (!islower(l.buffer[i]))
-  						break;
+  					nextChar = tolower(l.buffer[i]);
+  					if (!islower(nextChar))
+  						break;//the word is end
   					w.buffer[j]=l.buffer[i]; //copy the word
   					j++; i++;
   				}
   				
+  				//set the end of the word correctly
   				if (j<WORD) 
   					w.buffer[j]='\0';
   				else
@@ -51,11 +68,9 @@ class MyMap : public Map<line,word,long> {
   				
   				//if the string is not empty, emit
   				if (w.buffer[0]!='\0') {
-  					#ifdef DEBUG
-  					std::cout << "emitting: ";
-  					w.print();
-  					#endif
+  					
   					emit(&w,&one);
+  					
   				}
   				
   				if(i<LINE && l.buffer[i]=='\0') {

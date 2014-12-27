@@ -10,7 +10,7 @@
  
  
 #include <vector> //std::vector
-#include <pthread.h> 
+#include <pthread.h>  //pthread
 #include <iostream> //debug
 #include <utility> //std::pair
 #include <unordered_map> //hash table std::unordered_map
@@ -18,14 +18,19 @@
 #include <algorithm>    // std::sort
 
 
+/*
+*	Global Declaration of a Barrier
+*	will be the only synchronization 
+*	mechanism along all the threads
+*/
 pthread_barrier_t barrier;
 
-#include "reduce.hpp"
-#include "map.hpp" 
-#include "map_thread.cpp"
+#include "reduce.hpp" //contain USER DEFINED reduce function
+#include "map.hpp"   //contain USER DEFINED map function
+#include "worker_thread.cpp" //worker thread
 
 
-
+//utility
 long max(long i, long j) {
 	if (i>j)
 		return i;
@@ -39,14 +44,14 @@ class MapReduce {
 private:
 	std::vector<Map<In,Key,Value>*> *all_maps;  //maps object, user instantiated
 	long mapper; //#workers in map phase
-	std::vector<Reduce<Key,Value>*> *all_reduces; //reduce class, user customised
+	std::vector<Reduce<Key,Value>*> *all_reduces; //reduces objects, user instantiated
 	long reducer; //#workers in reduce phase
 	In* input_data; //input array
 	long input_size; //size of the input array
-	std::pair<Key,Value>* output;
+	std::pair<Key,Value>* output; //output array
 	long output_size;
 public:
-	/*Constructor, takes map object and reduces object, one for each map_worker, reduce_worker*/
+	/*Constructor, takes map objects and reduces objects, one for each map_worker / reduce_worker*/
 	MapReduce(std::vector<Map<In,Key,Value>*> *_m, std::vector<Reduce<Key,Value>*> *_r) {
 		mapper=_m->size();
 		reducer=_r->size();
@@ -59,7 +64,9 @@ public:
 	
 	};
 	
-	/*set the input array*/
+	/*	set the input array
+		The user can reuse the same MapReduce object on differents inputs
+	*/
 	inline void setInput(In* input, long size) {
 		input_data=input;
 		input_size=size;
@@ -76,15 +83,18 @@ public:
 		t1=tim.tv_sec+(tim.tv_usec/1000000.0); 
 		#endif
 	
+		//cannot start
 		if (mapper <1 || reducer <1)
 			return nullptr;
+
+
 		long i;
 		int rc;
-		long nw=max(mapper, reducer);
-		//thread data structure TODO initialize!
-		pthread_t threads[nw];
-		long output_start[nw];
+		long nw=max(mapper, reducer); //number of thread to create
+		pthread_t threads[nw]; //threads structure
+		long output_start[nw]; //will be used by a reducer for finding the start position of where to write the output
 		
+		//barrier initialization, threads to wait are nw + 1 (master)
 		rc=pthread_barrier_init(&barrier, NULL, nw + 1);
 		if(rc != 0) {
 			std::cerr << "error creating the barrier\n";
@@ -97,7 +107,7 @@ public:
 		//saving the reference for map clone, they will be destroyed at the end
 		  
 		
-		
+		/* ASSIGN JOB TO WORKER */
 		for(i=0; i<nw; i++) {
 		
 			
@@ -141,7 +151,9 @@ public:
 		}
 		
 		//std::cout <<" started!!!\n";
-		
+
+
+		/* CREATE WORKER */
 		for(i=0; i<nw; i++){
 			
       		rc = pthread_create(&threads[i], NULL, worker<In,Key,Value>, (void *) &args[i]);
@@ -150,6 +162,10 @@ public:
          		exit(-1);
       		}
       	}
+
+
+
+
 		
 		#ifdef DEBUG
 		//debugging 
@@ -160,6 +176,10 @@ public:
 			all_maps->at(i)->debug();
 		}
 		#endif
+
+
+
+
 		
 		//wait end of map
 		pthread_barrier_wait(&barrier);
@@ -172,7 +192,7 @@ public:
 		//wait end of reduce
 		pthread_barrier_wait(&barrier);
 		
-		//allocate out
+		//allocate outut array, need to count the key produced by every reducer
 		long size=0;
 		for(i=0; i<reducer; i++) {
 			output_start[i]=size;
@@ -186,7 +206,7 @@ public:
 		
 
 
-
+		/* JOIN ALL WORKERS */
    		for(i=0; i<nw; i++) {
       		rc = pthread_join(threads[i], nullptr);
       		if (rc) {
@@ -195,6 +215,7 @@ public:
          	}
 		}
 		
+
 		rc=pthread_barrier_destroy(&barrier);
 		if(rc != 0) {
 			std::cerr << "error destroyng the barrier\n";
@@ -225,6 +246,7 @@ public:
   		#endif
 		
 		
+		//SET OUTPUT SIZE AND RETURN THE OUTPUT
 		*_outsize=output_size;
 		return output;
 	}
