@@ -9,6 +9,9 @@ A simple C++ template library, targeting symmetric multicore, enabling fast data
 
 1. implement the map method (member field will be replicate on each map worker, so use it for  object reuse)
 pseudocode:
+
+
+
 class MyMap : public Map<line,word,long> {
 		long one=1;
 		word w;
@@ -18,7 +21,11 @@ class MyMap : public Map<line,word,long> {
 		}
 };
 
+
+
 2.implement a reduce method (will be applied only to value belonging to the same key, the type of output must be equal of value type)
+
+
 
 class MyReduce : public Reduce<word,long> {
 
@@ -31,7 +38,10 @@ class MyReduce : public Reduce<word,long> {
 };
 
 
+
+
 3.run! (you have only to create two vector with Maps and Reduces, in these way you are also defining the parallel degree used)
+
 
 
 	std::vector<Map<line,word,long>*> m;
