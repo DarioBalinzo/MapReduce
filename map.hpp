@@ -1,11 +1,16 @@
-
+//function used to sort the key when stored for the reducers workers
+//sort in reverse order, so the reducer will find the minimum with pop()
 template <class Key, class Value>
 bool compare(std::pair<Key*,Value*> p1, std::pair<Key*,Value*> p2) {
 		//compare only the key (reverse the order!!!)
 		return *(p1.first) > *(p2.first);
 	}
 
-/*abstract class*/
+/*
+	THE MAP CLASS (ABSTRACT, USER WILL DEFINE MAP METHOD)
+
+
+*/
 template <class In, class Key, class Value>
 class Map {
 
@@ -13,20 +18,25 @@ private:
 	std::unordered_map<Key,Value> *table; //hash table
 	Reduce<Key,Value> *r; //reference to a reduce class, used only for applying reduce operator
 	long reducer;
+	 //storing ordered partial result to each reducer
 	std::vector<std::vector<std::pair<Key*,Value*>>> *partial_result;
 	
+	
 public:	
+
+	//THE EMIT METHOD
 	inline void emit(Key *key, Value *val) {
 		if (table->count(*key)>0) {
-			//throws an out-of-range if the key is not present
+			//doing the reduce, key was already present
    	 		table->at(*key)=r->reduce(table->at(*key), *val);   
   		} else {
-  			//inserting
-   			(*table)[*key]=*val; //TODO be carefull on this copy..
+  			//inserting for the first time a key
+   			(*table)[*key]=*val; 
    		}
 		return;
 	};
 	
+	//ALLOCATION STARTUP
 	inline void setup(long size, Reduce<Key,Value>* _r, long _reducer ) {
 		//allocate the hash table of initial size "size"
 		reducer=_reducer;
@@ -61,14 +71,14 @@ public:
 	#endif
 	
 	
-	
+	//DEALLOCATION
 	inline void delete_table() {
 		delete table;
 		delete partial_result;
 	}
 	
 	
-	
+	//SHUFFLE AND SORT, END OF THE MAP PHASE
 	inline void shuffle_and_sort() {
 		//shuffle
 		long i;
@@ -101,9 +111,5 @@ public:
 	* 			USER DEFINED
 	*/
 	virtual void map(In input) = 0;
-	//virtual Map<In,Key,Value> *clone() =0;
 	
-	//i would like to avoid
-	//virtual int Hash(Key);
-	//virtual int cmp(Key k1, Key k2);
 };

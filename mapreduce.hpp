@@ -1,9 +1,8 @@
 /*
- *  MapReduce Skeleton
+ *  MapReduce Skeleton Implementation
  *  Author: Dario Balinzo
  *  dariobalinzo@gmail.com
  *
- *  MapReduce Skeleton
  *
  *
  */
@@ -240,9 +239,9 @@ public:
 		#ifdef TIMING
 		gettimeofday(&tim, NULL);  
   		t3=tim.tv_sec+(tim.tv_usec/1000000.0);  
-  		printf("%.6lf map\n", t2-t1);
-  		printf("%.6lf reduce\n", t3-t2);
-  		printf("%.6lf total\n", t3-t1);
+  		//printf("%.6lf map\n", t2-t1);
+  		//printf("%.6lf reduce\n", t3-t2);
+  		printf("%.6lf\n", t3-t1);
   		#endif
 		
 		

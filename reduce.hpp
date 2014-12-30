@@ -1,10 +1,18 @@
+/*
+	CUSTOM TYPE TO STORE THE <KEY,VALUE,SOURCE> IN A HEAP
+	
+	THE SOURCE VECTOR OF THE COUPLE IS ALSO STORED
+	IN SUCH A WAY WHEN WE EXTRACT AN ELEMENT IN THE HEAP WE 
+	CAN INSERT ANOTHER ITEMS COMING FROM THE SAME VECTOR
 
+*/
 template <class Key, class Value>
 class triple {
+	
+public:
 	//reference to a key and value
 	//plus the id of the mapper
 	//that have producted this key value
-public:
 	Key* k;
 	Value* v;
 	long bucket;
@@ -20,7 +28,7 @@ public:
 		return (*k == *(t1.k));
 	}
 	
-	//NB: is the countrary becouse the heap is a max heap
+	//NB: is the OPPOSITE becouse the heap is a max heap
 	//and i want to use it as a min heap
 	bool operator<(const triple &t1) const {
 		return (*k > *(t1.k));
@@ -31,14 +39,24 @@ public:
 
 
 
-/*abstract class*/
+
+/*
+	REDUCE CLASS (ABSTRACT, THE REDUCE METHOD WILL BE DEFINED BY THE USER)
+*/
 template <class Key, class Value>
 class Reduce {
 private:
+	//WILL STORE FOR EACH MAP WORKER A VECTOR WITH THE SORTED PARTIAL RESULT 
+	//A MIN HEAP WILL BE USED TO FIND THE MINIMUM AMONG THIS VECTORS
 	std::vector< std::vector< std::pair<Key*,Value*>>* > *partial_result;
+	//A PLACE TO STORE THE RESULT
 	std::vector<triple<Key,Value>> result; 
+	//MIN HEAP
 	std::priority_queue< triple<Key,Value>> heap;
 public:
+
+
+	//doing the reduce phase
 	inline void do_reduce(){
 		long i, source;
 		long mapper= partial_result->size();
@@ -62,12 +80,17 @@ public:
 				
 		}
 		
+		//if i have no items
 		if(heap.empty())
 			return;
 		
+		
+		//extracting the minimun
 		current=heap.top();
 		heap.pop();
-		source=current.bucket;
+		source=current.bucket; //origin of the minimum
+		
+		//get an items from source
 		if ((*partial_result)[source]->size() != 0 ) {
 			
 				temp= (*partial_result)[source]->back();
@@ -80,10 +103,11 @@ public:
 			}
 		
 		while ( !heap.empty() ) {
-		
+			//extracting the minimun
 			next=heap.top();
 			heap.pop();
-			source=next.bucket;
+			source=next.bucket;//origin of the minimum
+			
 			//if next has same key of current
 			if (next == current) {
 				*current.v= reduce(*current.v, *next.v); //do the reduce
@@ -121,19 +145,23 @@ public:
 	}
 	#endif
 	
+	//ALLOCATION
 	inline void setup(long mapper) {
 		partial_result = new std::vector<std::vector<std::pair<Key*,Value*>>*>(mapper);
 	}
 	
+	//getting mapper partial result
 	inline void linkMapperOut(long mapper_id, std::vector< std::pair<Key*,Value*>>* v) {
 		//getting sorted vector of key* value* pair 
 		(*partial_result)[mapper_id]=v;
 	}
 	
+	//my output size
 	inline long output_size() {
 		return result.size();
 	}
 	
+	//FILLING OUTPUT ARRAY STARTING BY START POSITION
 	inline void filling_output(std::pair<Key,Value>* output, long start) {
 		triple<Key,Value> t;
 		std::pair<Key,Value> p;
@@ -149,7 +177,7 @@ public:
 		
 	}
 	
-	
+	//DEALLOCATION
 	inline void delete_structure() {
 		delete partial_result;
 	}

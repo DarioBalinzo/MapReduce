@@ -8,7 +8,8 @@
 #define TIMING 1
 
 
-#include<time.h>
+//need only for timing pourpose
+#include<time.h> 
 #include<sys/time.h>
 
 
@@ -117,12 +118,12 @@ int main(int argc, char* argv[]) {
 	std::ifstream myfile2;
 	myfile.open (argv[3]);
 	long lines=-1;
-	std::cout << "started\n";
+	//std::cout << "started\n";
 	while (myfile.good()) {
 		myfile.getline(buffer.getAll(), LINE);
 		lines++;
 	}
-	std::cout <<lines <<"\n";
+	//std::cout <<lines <<"\n";
 	
 	myfile.close();
 	
