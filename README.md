@@ -11,7 +11,7 @@ A simple C++ template library, targeting symmetric multicore, enabling fast data
 pseudocode:
 
 
-
+```
 class MyMap : public Map<line,word,long> {
 		long one=1;
 		word w;
@@ -20,13 +20,13 @@ class MyMap : public Map<line,word,long> {
   					emit(&w,&one);		
 		}
 };
-
+```
 
 
 2.implement a reduce method (will be applied only to value belonging to the same key, the type of output must be equal of value type)
 
 
-
+```
 class MyReduce : public Reduce<word,long> {
 
 
@@ -36,6 +36,7 @@ class MyReduce : public Reduce<word,long> {
 		
 		
 };
+```
 
 
 
@@ -43,7 +44,7 @@ class MyReduce : public Reduce<word,long> {
 3.run! (you have only to create two vector with Maps and Reduces, in these way you are also defining the parallel degree used)
 
 
-
+```
 	std::vector<Map<line,word,long>*> m;
 	std::vector<Reduce<word,long>*> r;
 	for(i=0; i<M; i++) {
@@ -57,3 +58,4 @@ class MyReduce : public Reduce<word,long> {
 	mr.setInput( input ,lines );
 	long outsize;
 	std::pair<word,long>*out=mr.run_and_wait(&outsize);
+```
