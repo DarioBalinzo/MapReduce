@@ -12,12 +12,11 @@ pseudocode:
 
 
 ```
-class MyMap : public Map<line,word,long> {
-		long one=1;
-		word w;
-		void map( line l) {	
-  				foreach word w in string l	
-  					emit(&w,&one);		
+class MyMap : public Map<long,long,long> {
+		void map( long x) {
+			long i;
+			for(i=0; i<WORK; i++) 
+				emit(&i,&x);
 		}
 };
 ```
@@ -27,7 +26,7 @@ class MyMap : public Map<line,word,long> {
 
 
 ```
-class MyReduce : public Reduce<word,long> {
+class MyReduce : public Reduce<long,long> {
 
 
 		long reduce(long a, long b) {
@@ -45,8 +44,8 @@ class MyReduce : public Reduce<word,long> {
 
 
 ```
-	std::vector<Map<line,word,long>*> m;
-	std::vector<Reduce<word,long>*> r;
+	std::vector<Map<long,long,long>*> m;
+	std::vector<Reduce<long,long>*> r;
 	for(i=0; i<M; i++) {
 		m.push_back(new MyMap);
 	}
@@ -54,8 +53,8 @@ class MyReduce : public Reduce<word,long> {
 	for(i=0; i<R; i++) {
 		r.push_back(new MyReduce);
 	}
-	MapReduce<line,word,long> mr(&m,&r);
-	mr.setInput( input ,lines );
+	MapReduce<long,long,long> mr(&m,&r);
+	mr.setInput( a , SIZE );
 	long outsize;
-	std::pair<word,long>*out=mr.run_and_wait(&outsize);
+	std::pair<long,long>*out=mr.run_and_wait(&outsize);
 ```
